@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#059669" />
+  <meta name="description" content="Moderne Progressive Web App für dein digitales Tankbuch – optimiert für BMW G31 540d xDrive DITUPA Stage 1." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Tankbuch – BMW 540d xDrive (G31) PWA</title>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="540d Tankbuch" />
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-emerald-500 selection:text-white pb-14">
+
+  <!-- Decorative Background Glow -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Top App Bar / Header -->
+  <header class="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/85 border-b border-slate-800/80">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- App Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-900/40 ring-1 ring-white/15">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h12M5 21V5a2 2 0 012-2h6a2 2 0 012 2v16M15 9h2a2 2 0 012 2v5a2 2 0 004 0v-6l-3-3m-11 0h4" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Tankbuch</h1>
+            <span id="pwaStatusBadge" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              PWA
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400">BMW 540d xDrive • DITUPA Stage 1</p>
+        </div>
+      </div>
+
+      <!-- Center: 2 Main App Tabs (Visible in Header on Tablet/Desktop; on Smartphone we use the thumb-friendly Bottom Bar) -->
+      <nav aria-label="Ansicht wechseln (Desktop)" class="hidden sm:flex rounded-xl bg-slate-900/95 p-1 border border-slate-800">
+        <button
+          id="tabLogbookBtn"
+          type="button"
+          class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-sm transition cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Tankbuch</span>
+        </button>
+        <button
+          id="tabAnalyticsBtn"
+          type="button"
+          class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          </svg>
+          <span>540d Analyse &amp; Grafik</span>
+        </button>
+      </nav>
+
+      <!-- Right: Demo Data & Install PWA -->
+      <div class="flex items-center gap-2">
+        <button
+          id="installPwaBtn"
+          type="button"
+          class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition"
+        >
+          <span>Installieren</span>
+        </button>
+
+        <button
+          id="loadDemoBtn"
+          type="button"
+          title="Realistische BMW 540d xDrive Beispiel-Tankvorgänge laden"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Beispieldaten</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-5 space-y-5">
+
+    <!-- SLIM VEHICLE STRIP (Always visible at top, super compact) -->
+    <div class="rounded-xl bg-slate-900/80 border border-slate-800/90 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <strong id="vehicleNameDisplay" class="font-bold text-white">BMW 540d xDrive Touring (G31)</strong>
+        <span id="vehiclePlateDisplay" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+          BJ 2017 • DITUPA Stage 1
+        </span>
+        <span class="hidden md:inline text-slate-400">• ~390 PS / 780–800 Nm • <span id="vehicleTankDisplay">66 L</span> <span id="vehicleFuelDisplay">Diesel</span></span>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <div class="flex items-center gap-1.5">
+          <span class="text-slate-400">Tank-Reichweite:</span>
+          <strong id="statTankRange" class="text-emerald-400 font-bold">~ 940 km</strong>
+          <span id="statTankRangeBadge" class="hidden sm:inline text-[10px] text-slate-400">(66L)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 1: TANKBUCH (Dashboard 3 Karten + Schnell-Formular + Historie) -->
+    <!-- ========================================================= -->
+    <div id="viewLogbook" class="space-y-5">
+
+      <!-- DASHBOARD / ÜBERSICHT (Nur die 3 wichtigsten Pflicht-Karten) -->
+      <section aria-labelledby="dashboard-heading">
+        <div class="flex items-center justify-between mb-2.5">
+          <h2 id="dashboard-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Übersicht
+          </h2>
+          <span id="currentMonthLabel" class="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+            Aktueller Monat
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3.5">
+          <!-- Card 1: Gesamtkosten des aktuellen Monats -->
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-3.5 sm:p-4 shadow-lg">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-[11px] sm:text-xs font-medium text-slate-400">Kosten (Monat)</p>
+                <p id="statMonthCost" class="mt-1 sm:mt-1.5 text-xl sm:text-3xl font-extrabold tracking-tight text-white">
+                  0,00 €
+                </p>
+              </div>
+              <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.536c-1.171 1.952-3.07 1.952-4.242 0-1.172-1.953-1.172-5.119 0-7.072 1.171-1.952 3.07-1.952 4.242 0M8 10.5h4m-4 3h4m9-1.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <p id="statMonthCostSub" class="mt-1 sm:mt-1.5 text-[11px] sm:text-xs text-slate-400 truncate">
+              0 Tankvorgänge
+            </p>
+          </div>
+
+          <!-- Card 2: Getankte Liter des Monats -->
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-3.5 sm:p-4 shadow-lg">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-[11px] sm:text-xs font-medium text-slate-400">Liter (Monat)</p>
+                <p id="statMonthLiters" class="mt-1 sm:mt-1.5 text-xl sm:text-3xl font-extrabold tracking-tight text-white">
+                  0,00 L
+                </p>
+              </div>
+              <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+            </div>
+            <p id="statMonthLitersSub" class="mt-1 sm:mt-1.5 text-[11px] sm:text-xs text-slate-400 truncate">
+              Ø Literpreis: – €/L
+            </p>
+          </div>
+
+          <!-- Card 3: Durchschnittsverbrauch aller bisher abgeschlossenen Fahrten -->
+          <div class="col-span-2 sm:col-span-1 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/60 border border-emerald-500/30 p-3.5 sm:p-4 shadow-lg">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-[11px] sm:text-xs font-medium text-emerald-300/90">Ø Verbrauch (Gesamt)</p>
+                <p id="statAvgConsumption" class="mt-1 sm:mt-1.5 text-xl sm:text-3xl font-extrabold tracking-tight text-emerald-400">
+                  – L/100km
+                </p>
+              </div>
+              <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+            </div>
+            <p id="statAvgConsumptionSub" class="mt-1 sm:mt-1.5 text-[11px] sm:text-xs text-slate-400">
+              Noch keine abgeschlossene Fahrt
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- MAIN GRID: SCHNELL-FORMULAR & TANK-HISTORIE -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- EINGABE-FORMULAR (Aufgeräumt auf die 4 Pflichtfelder + Ausklapp-Optionen) -->
+        <section aria-labelledby="form-heading" class="lg:col-span-5 rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl">
+          <div class="flex items-center justify-between mb-3.5">
+            <div>
+              <h2 id="form-heading" class="text-base font-bold text-white flex items-center gap-2">
+                <span id="formModeDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span id="formTitleText">Neuer Tankvorgang</span>
+              </h2>
+              <p id="formSubtitleText" class="text-xs text-slate-400 mt-0.5">
+                Schnell-Eingabe (Verbrauch wird rückwirkend berechnet)
+              </p>
+            </div>
+
+            <button
+              id="cancelEditBtn"
+              type="button"
+              class="hidden px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer"
+            >
+              Abbrechen
+            </button>
+          </div>
+
+          <!-- Validation / Feedback Alert -->
+          <div id="formAlert" class="hidden mb-3.5 rounded-xl p-3 text-xs font-medium border" role="alert"></div>
+
+          <form id="fuelForm" class="space-y-3.5" novalidate>
+            <input id="editingEntryId" type="hidden" value="" />
+
+            <!-- 1. Datum -->
+            <div>
+              <label for="dateInput" class="block text-xs font-semibold text-slate-300 mb-1">
+                Datum
+              </label>
+              <input
+                id="dateInput"
+                name="date"
+                type="date"
+                required
+                class="w-full rounded-xl bg-slate-950/90 border border-slate-700/80 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+              />
+            </div>
+
+            <!-- 2. Aktueller Kilometerstand -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label for="odometerInput" class="block text-xs font-semibold text-slate-300">
+                  Aktueller Kilometerstand (km)
+                </label>
+                <span id="lastOdometerHint" class="text-[11px] font-medium text-emerald-400 hidden">
+                  Letzter Stand: 0 km
+                </span>
+              </div>
+              <div class="relative">
+                <input
+                  id="odometerInput"
+                  name="odometer"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.1"
+                  min="0"
+                  placeholder="z.B. 148250"
+                  required
+                  class="w-full rounded-xl bg-slate-950/90 border border-slate-700/80 pl-3.5 pr-12 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                />
+                <span class="absolute inset-y-0 right-3.5 flex items-center text-xs font-semibold text-slate-400 pointer-events-none">
+                  km
+                </span>
+              </div>
+            </div>
+
+            <!-- 3. Getankte Liter & 4. Gezahlter Gesamtpreis -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label for="litersInput" class="block text-xs font-semibold text-slate-300">
+                    Getankte Liter
+                  </label>
+                  <span id="tankCapacityHint" class="text-[10px] text-slate-500">66 L</span>
+                </div>
+                <div class="relative">
+                  <input
+                    id="litersInput"
+                    name="liters"
+                    type="number"
+                    inputmode="decimal"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="z.B. 54.80"
+                    required
+                    class="w-full rounded-xl bg-slate-950/90 border border-slate-700/80 pl-3.5 pr-9 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                  />
+                  <span class="absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-slate-400 pointer-events-none">
+                    L
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label for="priceInput" class="block text-xs font-semibold text-slate-300 mb-1">
+                  Gesamtpreis (€)
+                </label>
+                <div class="relative">
+                  <input
+                    id="priceInput"
+                    name="price"
+                    type="number"
+                    inputmode="decimal"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="z.B. 91.46"
+                    required
+                    class="w-full rounded-xl bg-slate-950/90 border border-slate-700/80 pl-3.5 pr-9 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                  />
+                  <span class="absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-slate-400 pointer-events-none">
+                    €
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ausklapp-Button für optionale Details (Streckenprofil, Notiz, Teilbetankung) -->
+            <div>
+              <button
+                id="toggleOptionalFieldsBtn"
+                type="button"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-950/60 hover:bg-slate-950 border border-slate-800/90 text-xs font-medium text-slate-300 transition cursor-pointer"
+              >
+                <span id="toggleOptionalLabel">+ Optionale Details (Streckenprofil, Notiz, Teilbetankung)</span>
+                <svg id="toggleOptionalChevron" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Collapsible Container -->
+              <div id="optionalFieldsContainer" class="hidden mt-3 space-y-3 pt-2 border-t border-slate-800/70">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label for="routeProfileInput" class="block text-xs font-semibold text-slate-300 mb-1">
+                      Streckenprofil
+                    </label>
+                    <select
+                      id="routeProfileInput"
+                      name="routeProfile"
+                      class="w-full rounded-xl bg-slate-950 border border-slate-700/80 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="Drittelmix">Drittelmix (Alltag)</option>
+                      <option value="Autobahn">Autobahn (Langstrecke)</option>
+                      <option value="Landstraße">Landstraße</option>
+                      <option value="Stadtverkehr">Stadtverkehr / Kurzstrecke</option>
+                      <option value="Sport / Anhänger">Sportlich / Stage 1 Volllast</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="noteInput" class="block text-xs font-semibold text-slate-300 mb-1">
+                      Notiz / Sorte (optional)
+                    </label>
+                    <input
+                      id="noteInput"
+                      name="note"
+                      type="text"
+                      maxlength="80"
+                      placeholder="z.B. Aral Ultimate Diesel"
+                      class="w-full rounded-xl bg-slate-950 border border-slate-700/80 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <!-- Teilbetankung -->
+                <div class="rounded-xl bg-slate-950/90 border border-slate-800 px-3 py-2 flex items-center justify-between gap-3">
+                  <div>
+                    <label for="partialFillInput" class="text-xs font-semibold text-slate-200 cursor-pointer block">
+                      Teilbetankung („Nicht vollgetankt“)
+                    </label>
+                    <span class="text-[11px] text-slate-400 block">
+                      Liter werden erst beim nächsten Volltanken abgerechnet
+                    </span>
+                  </div>
+                  <input
+                    id="partialFillInput"
+                    name="isPartial"
+                    type="checkbox"
+                    class="w-4 h-4 accent-emerald-500 rounded cursor-pointer shrink-0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Kompakte Live-Vorschau -->
+            <div id="livePreviewBox" class="rounded-xl bg-slate-950/70 border border-slate-800/90 px-3 py-2.5 space-y-1 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Distanz &amp; Verbrauch (für Eintrag A):</span>
+                <div class="flex items-center gap-2">
+                  <span id="previewDistance" class="font-semibold text-slate-300">– km</span>
+                  <span class="text-slate-600">•</span>
+                  <span id="previewConsumption" class="font-bold text-emerald-400">– L/100km</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Literpreis:</span>
+                <span id="previewPricePerLiter" class="font-semibold text-slate-300">– €/L</span>
+              </div>
+            </div>
+
+            <!-- Speichern Button -->
+            <button
+              id="saveBtn"
+              type="submit"
+              class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2 transition cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span id="saveBtnText">Speichern</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- HISTORIE (Absteigend sortierte, scrollbare Liste) -->
+        <section aria-labelledby="history-heading" class="lg:col-span-7 rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl flex flex-col">
+          <div class="flex items-center justify-between gap-2 mb-3.5">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="history-heading" class="text-base font-bold text-white">Tank-Historie</h2>
+                <span id="entriesCountBadge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                  0 Einträge
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">
+                Absteigend sortiert (neuester Tankvorgang oben)
+              </p>
+            </div>
+
+            <button
+              id="clearAllBtn"
+              type="button"
+              class="hidden items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Alle löschen</span>
+            </button>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyHistoryState" class="py-12 px-4 text-center rounded-xl border border-dashed border-slate-800 bg-slate-950/40">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-400 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h12M5 21V5a2 2 0 012-2h6a2 2 0 012 2v16M15 9h2a2 2 0 012 2v5a2 2 0 004 0v-6l-3-3m-11 0h4" />
+              </svg>
+            </div>
+            <h3 class="text-sm font-semibold text-slate-200">Noch keine Tankvorgänge gespeichert</h3>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto mt-1">
+              Trage links deinen ersten Tankstopp ein oder klicke oben rechts auf „Beispieldaten“.
+            </p>
+          </div>
+
+          <!-- Scrollable List of Cards -->
+          <div
+            id="historyList"
+            class="history-scroll max-h-[540px] overflow-y-auto pr-1 space-y-3 hidden"
+            aria-live="polite"
+          ></div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: 540d ANALYSE & GRAFIK (Trend-Diagramm, Detail-Kosten, Fahrzeugprofil) -->
+    <!-- ========================================================= -->
+    <div id="viewAnalytics" class="hidden space-y-6">
+
+      <!-- VISUELLES VERBRAUCHS- & SPRITPREIS-DIAGRAMM -->
+      <section aria-labelledby="chart-heading" class="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 id="chart-heading" class="text-base font-bold text-white flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              </svg>
+              <span>Verbrauchs- &amp; Dieselpreis-Trend</span>
+            </h2>
+            <p id="chartSubtitle" class="text-xs text-slate-400">
+              Rückwirkender Realverbrauch (L/100km) im Vergleich zum Stage-1-Zielverbrauch
+            </p>
+          </div>
+
+          <div class="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-800">
+            <button
+              id="chartModeConsumptionBtn"
+              type="button"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition cursor-pointer"
+            >
+              Verbrauch (L/100km)
+            </button>
+            <button
+              id="chartModePriceBtn"
+              type="button"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer"
+            >
+              Dieselpreis (€/L)
+            </button>
+          </div>
+        </div>
+
+        <div id="chartContainer" class="w-full h-52 flex items-center justify-center rounded-xl bg-slate-950/60 border border-slate-800/80 px-3 py-2">
+          <p class="text-xs text-slate-500">Mindestens 2 Tankvorgänge erforderlich, um den Trend darzustellen.</p>
+        </div>
+      </section>
+
+      <!-- DETAIL-KOSTEN & UMWELT-ANALYSE (4 Karten) -->
+      <section aria-label="Kosten- und Streckenanalyse">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+          Detaillierte Kosten- &amp; Streckenbilanz
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow">
+            <span class="block text-xs text-slate-400">Fahrtkosten auf 100 km</span>
+            <span id="statCostPer100km" class="text-lg font-extrabold text-white mt-1 block">– €/100km</span>
+            <span id="statCostPerKm" class="text-xs text-slate-400 mt-0.5 block">– €/km</span>
+          </div>
+
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow">
+            <span class="block text-xs text-slate-400">CO₂-Ausstoß (Diesel)</span>
+            <span id="statCo2PerKm" class="text-lg font-extrabold text-white mt-1 block">– g/km</span>
+            <span id="statCo2Total" class="text-xs text-slate-400 mt-0.5 block">Gesamt: 0 kg CO₂</span>
+          </div>
+
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow">
+            <span class="block text-xs text-slate-400">Erfasste Gesamtstrecke</span>
+            <span id="statTotalDistance" class="text-lg font-extrabold text-white mt-1 block">0 km</span>
+            <span id="statOdometerSpan" class="text-xs text-slate-400 mt-0.5 block">Aus abgeschlossenen Fahrten</span>
+          </div>
+
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow">
+            <span class="block text-xs text-slate-400">Gesamtausgaben (Alle)</span>
+            <span id="statAllTimeCost" class="text-lg font-extrabold text-white mt-1 block">0,00 €</span>
+            <span id="statAllTimeLiters" class="text-xs text-slate-400 mt-0.5 block">0,00 L Diesel gesamt</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAHRZEUGPROFIL & STAGE 1 EINSTELLUNGEN -->
+      <section aria-label="Fahrzeugprofil bearbeiten" class="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white">Fahrzeugprofil &amp; Zielwerte</h3>
+            <p class="text-xs text-slate-400">
+              Technische Eckdaten für deine Reichweiten-Prognose und Verbrauchs-Ampel
+            </p>
+          </div>
+          <span class="text-xs font-semibold text-emerald-400">Ziel: <span id="vehicleTargetDisplay">7,0 L/100km</span></span>
+        </div>
+
+        <form id="vehicleForm" class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 items-end">
+          <div>
+            <label for="vehModelInput" class="block text-xs font-semibold text-slate-300 mb-1">Fahrzeugmodell</label>
+            <input id="vehModelInput" type="text" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label for="vehPlateInput" class="block text-xs font-semibold text-slate-300 mb-1">Tuning / Kennzeichen</label>
+            <input id="vehPlateInput" type="text" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label for="vehTankInput" class="block text-xs font-semibold text-slate-300 mb-1">Tankgröße (Liter)</label>
+            <input id="vehTankInput" type="number" step="1" min="10" max="200" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label for="vehTargetInput" class="block text-xs font-semibold text-slate-300 mb-1">Zielverbrauch (L/100km)</label>
+            <div class="flex gap-2">
+              <input id="vehTargetInput" type="number" step="0.1" min="1" max="30" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white" />
+              <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shrink-0 transition cursor-pointer">
+                Speichern
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- SMARTPHONE BOTTOM TAB BAR (Daumen-Bedienung auf Mobilgeräten < 640px) -->
+  <nav aria-label="Smartphone Navigation" class="sm:hidden fixed bottom-0 inset-x-0 z-40 backdrop-blur-xl bg-slate-950/90 border-t border-slate-800/90 px-3 pt-2 pb-2 pb-safe">
+    <div class="grid grid-cols-2 gap-2">
+      <button
+        id="mobileTabLogbookBtn"
+        type="button"
+        class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-md shadow-emerald-950/50 transition"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Tankbuch</span>
+      </button>
+
+      <button
+        id="mobileTabAnalyticsBtn"
+        type="button"
+        class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-400 bg-slate-900/80 border border-slate-800 transition"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+        </svg>
+        <span>540d Analyse</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main App Script -->
+  <script src="./script.js"></script>
+</body>
+</html>
